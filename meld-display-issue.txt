@@ -1,0 +1,6 @@
+-Issue:
+	While running meld under ubuntu 18.04, file names in the comparison windows somehow disappeared.
+
+*Solution:
+	# sudo apt install adwaita-icon-theme-full
+	then the file names came back.
