@@ -1,0 +1,5 @@
+-Issue:
+	Open "Network Connections" windows to configure ethernet cards, such as add second IP on one interface.
+-Solution:
+	Open "Command Prompt" window, type command > ncpa.cpl
+ 
