@@ -1,0 +1,75 @@
+1) Convert the package file 'lrzsz.ipk' from binary to plain text:
+ 
+	$ xxd -g1 lrzsz_0.12.20-3_ar71xx.ipk lrz.txt
+
+2) Remove the “00xxxxx: ” from beginning of each line and the 16 chars representation at end of each line
+
+	$ sed -i 's/^\(.\)\{9\}//g' lrz.txt
+	$ sed -i 's/\(.\)\{16\}$//g' lrz.txt
+	
+3) Convert the plain text back to binary fo confirm it is working (optional):
+
+	$ for i in $(cat lrz.txt) ; do printf "\x$i" ; done > lrz.ipk
+
+	$ md5sum lrzsz_0.12.20-3_ar71xx.ipk
+	b30574ffb2c9376460576b03d7dad7b8  lrzsz_0.12.20-3_ar71xx.ipk
+
+	$ md5sum lrz.ipk
+	b30574ffb2c9376460576b03d7dad7b8  lrz.ipk
+
+4) Send plain text file 'lrz.txt' to target board:
+
+	root@OpenWrt:/tmp# echo "........." >> lrz.txt
+
+	$ j=0; echo -n -e "ec" > /dev/ttyUSB0; echo -n -e "ho" > /dev/ttyUSB0; echo -n -e " \"" > /dev/ttyUSB0; for i in $(cat output.txt); do j=$(($j+1)); echo -n -e "$i" > /dev/ttyUSB0; echo -n -e " " > /dev/ttyUSB0; if [ $(expr $j % 16) -eq 0 ]; then echo -n -e "\" " > /dev/ttyUSB0; echo -n -e ">>" > /dev/ttyUSB0; echo -n -e "lr" > /dev/ttyUSB0; echo -n -e "z" > /dev/ttyUSB0; echo " " > /dev/ttyUSB0; echo -n -e "ec" > /dev/ttyUSB0; echo -n -e "ho" > /dev/ttyUSB0; echo -n -e " \"" > /dev/ttyUSB0; fi; done; echo -n -e "ec" > /dev/ttyUSB0; echo -n -e "ho" > /dev/ttyUSB0; echo "\"" > /dev/ttyUSB0
+
+5） Convert the text file to binary and verify the binary by md5sum:
+
+	root@OpenWrt:/tmp# for i in $(cat lrz.txt) ; do printf "\x$i" ; done > lrz.ipk
+	root@OpenWrt:/tmp# md5sum lrz.ipk
+	b30574ffb2c9376460576b03d7dad7b8  lrz.ipk
+	
+6) Install package 'lrzsz' on both host server and target router:
+
+	- On host server:
+	$ sudo apt-get install lrzsz
+
+	- On target router:
+	root@OpenWrt:/tmp# opkg install lrz.ipk
+	root@OpenWrt:/tmp# lrz -Z
+	
+7) Transfer binary file from host server to target router:
+
+	$ sudo su
+	# sz --zmodem ./u-boot.bin > /dev/ttyUSB0 < /dev/ttyUSB0
+
+8) Verify the integrity of the file been transferred:
+
+	# md5sum ./u-boot.bin
+	0fab5b6042545ab35f7e1e0498e3128a  ./u-boot.bin
+	
+	root@OpenWrt:/tmp# md5sum u-boot.bin
+	0fab5b6042545ab35f7e1e0498e3128a  u-boot.bin
+
+9) Save u-boot.bin to flash partition 6  (configuration@0x00f90000)
+
+	root@OpenWrt:/tmp# mtd write u-boot.bin configuration
+	
+10) Enter u-boot and replace partition 0 (0x9f000000) with partition 6 (0x9ff90000)
+
+	- Copy partition 6 to DDR memory
+	mifi> cp.b 0x9ff90000 0x80060000 0x40000
+	
+	- Show content from memory(optional)
+	mifi> md.b 0x80060000
+	
+	- Format partition 0 (where u-boot located)
+	mifi> erase.b 0x9f000000 +0x40000
+	
+	- Flash new u-boot image from memory to partition 0
+	mifi> cp.b 0x80060000 0x9f000000 0x40000
+	
+
+	
+
+

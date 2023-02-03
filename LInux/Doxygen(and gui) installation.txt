@@ -1,0 +1,34 @@
+# sudo apt-get install doxygen
+# sudo apt-get install graphviz
+# sudo apt-get install doxygen-gui
+# doxywizard
+
+
+make latex with 中文
+
+使用docxygen生成文档，注意选上 GENERATE_LATEX 、LATEX_OUTPUT、USE_PDFLATEX（最好还选上 PDF_HYPERLINKS）； 用文本编辑器打开 docxygen 生成的 latex 目录中的 refman.tex。找到“\begin{document}”这一行，将其修改为
+
+1
+2
+3
+4
+5
+6
+7
+8
+\usepackage{CJKutf8} 
+\begin{document}
+\begin{CJK}{UTF8}{gbsn} 
+[/code]
+再找到“\end{document}”这一行，将其修改为
+[code lang="latex"]
+\end{CJK} 
+\end{document}
+保存，输入make，完成编译。
+
+如果出现错误提示：
+! LaTeX Error: File `CJKutf8.sty' not found
+则运行
+
+# sudo apt-get install latex-cjk-*
+
