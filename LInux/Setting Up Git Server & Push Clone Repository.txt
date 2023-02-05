@@ -1,0 +1,59 @@
+(1) Setting Up the Server
+
+$ sudo adduser git
+$ su git
+$ cd
+$ mkdir .ssh && chmod 700 .ssh
+$ touch .ssh/authorized_keys && chmod 600 .ssh/authorized_keys
+
+
+
+
+(2) Add some developer SSH public keys to the authorized_keys file for the git user. Append them to the git user’s authorized_keys file in its .ssh directory:
+
+$ cat /tmp/id_rsa.john.pub >> ~/.ssh/authorized_keys
+$ cat /tmp/id_rsa.josie.pub >> ~/.ssh/authorized_keys
+$ cat /tmp/id_rsa.jessica.pub >> ~/.ssh/authorized_keys
+
+
+(3) Set up an empty repository by running git init with the --bare option, which initializes the repository without a working directory:
+
+$ cd /home/git
+$ mkdir 9531
+$ cd 9531
+$ git init --bare openwrt.git
+
+Initialized empty Git repository in /home/git/repo/9531/openwrt.git/
+
+
+
+(4) On Developer's laptop, extract the zip file of the mirrored repository (e.g. ~/9531/openwrt.git)
+
+$ cd ~/9531/openwrt.git
+$ git push --mirror git@server:/home/git/repo/9531/openwrt.git
+$ git push --mirror ssh://aicom_git@45.74.65.35:2222/opt/git/repo/9531/openwrt.git
+
+
+(5) At this point, the others can clone it down and push changes back up just as easily:
+
+$ git clone git@server:/home/git/repo/9531/openwrt.git
+$ cd openwrt
+$ git switch aicom-19.07
+$ git status
+On branch aicom-19.07
+Your branch is up to date with 'origin/aicom-19.07'.
+
+nothing to commit, working tree clean
+
+
+
+
+(6) Configure git and install GUI for git on Developer's laptop
+
+$ git config --global user.name "user1"
+$ git config --global user.email "username@example.com"
+$ sudo apt-get install git-gui
+$ git gui
+
+
+
