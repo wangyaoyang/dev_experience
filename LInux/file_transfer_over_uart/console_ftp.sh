@@ -12,6 +12,9 @@ COLOR_GRAY="\e[37m"
 COLOR_WHITE="\e[97m"
 COLOR_RESET="\e[0m"
 
+UART_DEV=""
+SRC_FILE=""
+
 wait_key() {
 	if [ $# -gt 0 ]; then
 		sleep 5;
@@ -27,63 +30,54 @@ wait_key() {
 	done
 }
 
+tty_send() {
+	echo -n -e "$@" > $UART_DEV;
+}
+
+tty_commit() {
+	tty_send "$@";
+	echo " " > $UART_DEV;
+}
+
 install_lrz() {
-	UART_DEV=$1
 	SRC_FILE=lrz.ipk
 	MD5_SRC=`md5sum $SRC_FILE`
 	j=0;
-	echo -n -e "cd /tmp && rm lrz.txt" > $UART_DEV < $UART_DEV;
-	echo " " > $UART_DEV;
-	echo -n -e "echo \"$MD5_SRC\" > lrz_src.md5" > $UART_DEV; 
-	echo " " > $UART_DEV;
-	echo -n -e "echo \"" > $UART_DEV;
+	tty_commit "cd /tmp && rm lrz.txt";
+	tty_commit "echo \"$MD5_SRC\" > lrz_src.md5";
+	tty_send "echo \""
 	for i in $(cat lrz.txt);
 		do
 			j=$(($j+1));
-			echo -n -e "$i" > $UART_DEV;
-			echo -n -e " " > $UART_DEV;
+			tty_send "$i " > $UART_DEV;
 			if [ $(expr $j % 32) -eq 0 ]; then
-				echo -n -e "\" >> lrz.txt" > $UART_DEV;
-				echo " " > $UART_DEV;
-				echo -n -e "echo \"" > $UART_DEV;
+				tty_commit "\" >> lrz.txt" > $UART_DEV;
+				tty_send "echo \"" > $UART_DEV;
 				echo -n -e "#"
 			fi;
 		done;
-	echo -n -e "\" >> lrz.txt" > $UART_DEV;
-	echo " " > $UART_DEV;
+	tty_commit "\" >> lrz.txt";
 	echo -e "$COLOR_GREEN \nConverting..."
-	echo -n -e "for i in \$(cat lrz.txt) ; do printf \"\x\$i\" ; done > lrz.ipk" > $UART_DEV;
-	echo " " > $UART_DEV;
+	tty_commit "for i in \$(cat lrz.txt) ; do printf \"\x\$i\" ; done > lrz.ipk";
 	cat $UART_DEV &
-	echo -n -e "sleep 3 && rm lrz.txt && md5sum lrz.ipk > lrz_dst.md5" > $UART_DEV;
-	echo " " > $UART_DEV;
-	echo -n -e "echo \"Verify hash code:\" && cat lrz_src.md5 && cat lrz_dst.md5" > $UART_DEV;
-	echo " " > $UART_DEV;
-	echo -n -e "if [ -z \"`cmp -l lrz_src.md5 lrz_dst.md5`\" ]; then echo \"Checksum OK!\" && opkg install lrz.ipk; " > $UART_DEV;
-	echo -n -e "else echo \"MD5 Failed!\"; fi" > $UART_DEV;
-	echo " " > $UART_DEV;
+	tty_commit "sleep 3 && rm lrz.txt && md5sum lrz.ipk > lrz_dst.md5";
+	tty_commit "echo \"Verify hash code:\" && cat lrz_src.md5 && cat lrz_dst.md5";
+	tty_send "if cmp -l lrz_src.md5 lrz_dst.md5; then echo -e '\nUpload OK!\n' &&";
+	tty_commit " opkg install lrz.ipk; else echo -e '\nMD5 Failed!\n'; fi";
+	echo -e "$COLOR_GREEN \nVerifying..."
 	wait_key "Press ENTER after xyzmodem tool 'lrzsz' installed..."
 	killall cat
 }
 
 upload_file() {
-	UART_DEV=$1
-	SRC_FILE=$2
-	MD5_SRC=`md5sum $SRC_FILE`
-	echo -n -e "cd /tmp && rm $SRC_FILE" > $UART_DEV;
-	echo " " > $UART_DEV;
-	echo -n -e "echo \"$MD5_SRC\" > src.md5" > $UART_DEV;
-	echo " " > $UART_DEV;	
-	echo -n -e "lrz -Z" > $UART_DEV;
-	echo " " > $UART_DEV;
+	tty_commit "cd /tmp && rm $SRC_FILE";
+	tty_commit "echo \"$(md5sum $SRC_FILE)\" > src.md5";
+	tty_commit "lrz -Z";
 	sz --zmodem $SRC_FILE > $UART_DEV < $UART_DEV;
 	cat $UART_DEV &
-	echo -n -e "md5sum $SRC_FILE > dst.md5" > $UART_DEV;
-	echo " " > $UART_DEV;
-	echo -n -e "echo \"Verify hash code:\" && cat src.md5 && cat dst.md5" > $UART_DEV;
-	echo " " > $UART_DEV;
-	echo -n -e "if [ -z \"`cmp -l src.md5 dst.md5`\" ]; then echo \"Checksum OK!\"; else echo \"MD5 Failed!\"; fi" > $UART_DEV;
-	echo " " > $UART_DEV;
+	tty_commit "md5sum $SRC_FILE > dst.md5 && echo \"Verify hash code:\"";
+	tty_commit "sleep 1 && cat src.md5 && cat dst.md5";
+	tty_commit "if cmp -l src.md5 dst.md5; then echo -e '\nChecksum OK!\n'; else echo -e '\nMD5 Failed!\n'; fi";
 	wait_key
 	killall cat
 }
@@ -93,7 +87,8 @@ file_transfer() {
 		echo -e "$COLOR_BLUE Installing xyz/modem tool over console..."
 		echo -e "$COLOR_GREEN Uploading lrz.ipk through $1..."
 		if [ -c $1 ]; then
-			install_lrz $@
+			UART_DEV=$1
+			install_lrz
 		else
 			echo -e "$COLOR_RED $1 is not a valid device name";
 		fi
@@ -109,8 +104,7 @@ file_transfer() {
 				#echo -e "$COLOR_RED The specified file '$2' is not exist."
 				cat $UART_DEV &
 				echo -e "$COLOR_GREEN$SRC_FILE$COLOR_RESET is not a file, Sending $COLOR_GREEN$SRC_FILE$COLOR_RESET as a commands...";
-				echo -n -e "${@:2}" > $UART_DEV;
-				echo " " > $UART_DEV;
+				echo -n -e "${@:2}" > $UART_DEV;	echo " " > $UART_DEV;
 				sleep 3;
 				killall cat
 			fi
