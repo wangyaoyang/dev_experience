@@ -1,0 +1,5 @@
+1.	Assume the Host PC in Ubuntu20.04;
+2.	Login Virtual machine 'ubuntu 18.04'
+3.	Edit /etc/fstab	on VM ubuntu18.04 and add:
+4.	vmhgfs-fuse	/mtn/hgfs	fuse	defaults,allow_other	0	0
+5.	Thenn remount:	# sudo mount -a	

@@ -1,0 +1,22 @@
+
+- Without Kernel Rebuild:
+	1. Add kernel.printk = 0 4 1 7 to /etc/sysctl.d/:
+
+		# echo "kernel.printk = 0 4 1 7" > /etc/sysctl.d/10-printk.conf
+
+	2. Edit /etc/inittab, comment out lines starting with ttyS0:*, ttyATH0:* and ::askconsole:*
+	
+		# sed -i -r -e "s/^((ttyS0|ttyATH0|::askconsole):.*)/#\0/" /etc/inittab
+	
+	3. Reboot
+	
+- With Kernel Rebuild
+	1. Modify Kernel config in <buildroot>/target/linux/ar71xx/config-x.xx: (x.xx = kernel version)
+		a. Terminates Kernel console output early:
+			Add CONFIG_MESSAGE_LOGLEVEL_DEFAULT=0
+		b. Terminates Kernel console output later in boot process:
+			Add loglevel=0 to CONFIG_CMDLINE=“rootfstype=squashfs,jffs2 noinitrd”
+			# sed -i -r -e 's/(CONFIG_CMDLINE=".*)(")/\1 loglevel=0\2/' target/linux/ar71xx/config-x.xx
+	2. Recompile Kernel:
+		# make target/linux/{clean,prepare} V=s QUILT=1 && make V=s
+		
