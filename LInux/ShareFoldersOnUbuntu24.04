@@ -1,0 +1,56 @@
+root@smb:~# apt -y install samba
+
+root@smb:~# mkdir /home/share
+root@smb:~# chmod 777 /home/share
+root@smb:~# vi /etc/samba/smb.conf
+
+[global]
+   # line 25 : add (set charset)
+   unix charset = UTF-8
+
+   # line 39 : uncomment and change to your interface name
+   interfaces = 127.0.0.0/8 enp1s0
+
+   # line 46 : uncomment
+   bind interfaces only = yes
+
+   # line 100 : confirm (no authentication)
+   map to guest = bad user
+
+.....
+.....
+
+# add to last line
+# any Share name you like
+[Share]
+   # specify shared directory
+   path = /home/share
+   # allow writing
+   writable = yes
+   # allow guest user (nobody)
+   guest ok = yes
+   # looks all as guest user
+   guest only = yes
+   # set permission [777] when file created
+   force create mode = 777
+   # set permission [777] when folder created
+   force directory mode = 777 
+.....
+.....
+
+root@smb:~# systemctl restart smbd
+
+
+
+==============================================================================
+Q: If Network shares don't show up in 24.04 ?
+
+A: There are a number of changes to network discovery in 24.04. You will notice there is no longer a "Windows Network" under Networks since smb1 has been disabled on most modern systems.
+
+There are two ways the Linux guest can discover network hosts: Avahi and WS-Discovery
+
+On Ubuntu make sure both of these are installed:
+
+sudo apt install avahi-daemon
+sudo apt install wsdd
+

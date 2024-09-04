@@ -1,0 +1,26 @@
+1.	Command line:
+	# git config --global user.name "FIRST_NAME LAST_NAME"
+	# git config --global user.email "MY_NAME@example.com"
+
+
+
+2.	Edit file ~/.gitconfig
+3.	Add:
+
+[user]
+        email = wangyaoyang@yahoo.com
+        name = Yaoyang Wang
+        pass = password
+
+[diff]
+        tool = meld
+[difftool]
+        prompt = false
+[difftool "meld"]
+        cmd = meld "$LOCAL" "$REMOTE"
+[merge]
+        tool = meld
+        summary = true
+[mergetool "meld"]
+        path = /usr/bin/meld
+
