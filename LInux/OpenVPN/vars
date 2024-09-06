@@ -1,0 +1,9 @@
+set_var EASYRSA_REQ_COUNTRY	"CA"
+set_var EASYRSA_REQ_PROVINCE	"Ontario"
+set_var EASYRSA_REQ_CITY	"Ottawa"
+set_var EASYRSA_REQ_ORG		"DigitalOcean"
+set_var EASYRSA_REQ_EMAIL	"wangyaoyang@yahoo.com"
+set_var EASYRSA_REQ_OU		"Community"
+set_var EASYRSA_ALGO		"ec"
+set_var EASYRSA_DIGEST		"sha512"
+

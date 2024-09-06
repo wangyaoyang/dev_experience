@@ -1,0 +1,19 @@
+For .vmdk
+sudo modprobe nbd
+sudo qemu-nbd -r -c /dev/nbd1 ./linux_box/VM/image.vmdk
+notice tha I use the option -r that's because VMDK version 3 must be read only to be able to be mounted by qemu
+
+and then I mount it
+
+mount /dev/nbd1p1 /mnt
+I use nbd1 because nbd0 sometimes gives 'mount: special device /dev/nbd0p1 does not exist'
+
+
+# sudo modprobe nbd
+# sudo qemu-nbd -r -c /dev/nbd1 'E.vmdk' 
+# sudo mkdir /mnt/DriveE
+# sudo mount /dev/nbd1p2 /mnt/DriveE
+# ls /mnt/DriveE
+# sudo umount /mnt/DriveE
+# sudo qemu-nbd -d /dev/nbd1
+

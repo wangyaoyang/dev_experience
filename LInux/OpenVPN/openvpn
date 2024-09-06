@@ -1,0 +1,187 @@
+Setup CA Server
+
+Step 1
+
+sudo apt update
+sudo apt install easy-rsa
+
+Step 2
+
+mkdir ~/easy-rsa
+
+ln -s /usr/share/easy-rsa/* ~/easy-rsa/
+
+sudo chown yaoyang ~/easy-rsa
+chmod 700 /home/yaoyang/easy-rsa
+
+cd ~/easy-rsa
+vi ~/easy-rsa/vars
+
+./easyrsa init-pki
+
+Step 3
+
+cd ~/easy-rsa
+nano vars
+
+./easyrsa build-ca
+
+./easyrsa build-ca nopass
+
+Step 4
+
+cat ~/easy-rsa/pki/ca.crt
+
+nano /tmp/ca.crt
+
+sudo cp /tmp/ca.crt /usr/local/share/ca-certificates/
+sudo update-ca-certificates
+
+CentOS, Fedora, RedHat distributions
+sudo cp /tmp/ca.crt /etc/pki/ca-trust/source/anchors/
+sudo update-ca-trust
+CentOS, Fedora, RedHat distributions
+
+
+Setup OpenVPN Server
+
+Step 1
+
+sudo apt update
+sudo apt install openvpn easy-rsa
+
+mkdir ~/easy-rsa
+
+ln -s /usr/share/easy-rsa/* ~/easy-rsa/
+
+sudo chown yaoyang ~/easy-rsa
+chmod 700 ~/easy-rsa
+
+Step 2
+
+cd ~/easy-rsa
+nano vars
+
+./easyrsa init-pki
+
+Step 3
+
+cd ~/easy-rsa
+
+./easyrsa gen-req server nopass
+
+sudo cp /home/yaoyang/easy-rsa/pki/private/server.key /etc/openvpn/server/
+
+Step 4
+
+scp /home/yaoyang/easy-rsa/pki/reqs/server.req yaoyang@your_ca_server_ip:/tmp
+
+------------------On CA Server -------------------------------------------
+cd ~/easy-rsa
+./easyrsa import-req /tmp/server.req server
+
+./easyrsa sign-req server server
+
+scp pki/issued/server.crt yaoyang@your_vpn_server_ip:/tmp
+scp pki/ca.crt yaoyang@your_vpn_server_ip:/tmp
+--------------------------------------------------------------------------
+
+sudo cp /tmp/{server.crt,ca.crt} /etc/openvpn/server
+
+Step 5
+
+cd ~/easy-rsa
+openvpn --genkey --secret ta.key
+
+sudo cp ta.key /etc/openvpn/server
+
+Step 6
+
+mkdir -p ~/client-configs/keys
+
+chmod -R 700 ~/client-configs
+
+cd ~/easy-rsa
+./easyrsa gen-req client1 nopass
+
+cp pki/private/client1.key ~/client-configs/keys/
+
+scp pki/reqs/client1.req yaoyang@your_ca_server_ip:/tmp
+
+------------------On CA Server -------------------------------------------
+cd ~/easy-rsa
+./easyrsa import-req /tmp/client1.req client1
+
+./easyrsa sign-req client client1
+
+scp pki/issued/client1.crt yaoyang@your_server_ip:/tmp
+--------------------------------------------------------------------------
+
+cp /tmp/client1.crt ~/client-configs/keys/
+
+cp ~/easy-rsa/ta.key ~/client-configs/keys/
+sudo cp /etc/openvpn/server/ca.crt ~/client-configs/keys/
+sudo chown yaoyang.yaoyang ~/client-configs/keys/*
+
+Step 7
+
+sudo cp /usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz /etc/openvpn/server/
+sudo gunzip /etc/openvpn/server/server.conf.gz
+
+sudo nano /etc/openvpn/server/server.conf
+
+Step 8
+
+sudo nano /etc/sysctl.conf
+
+sudo sysctl -p
+
+Step 9
+
+ip route list default
+
+sudo nano /etc/ufw/before.rules
+
+sudo nano /etc/default/ufw
+
+sudo ufw allow 1194/udp
+sudo ufw allow OpenSSH
+
+sudo ufw disable
+sudo ufw enable
+
+Step 10
+
+sudo systemctl -f enable openvpn-server@server.service
+
+sudo systemctl start openvpn-server@server.service
+sudo systemctl start openvpn-server@mattino507.service
+
+sudo systemctl status openvpn-server@server.service
+sudo systemctl status openvpn-server@mattino507.service
+
+sudo journalctl -u openvpn-server@mattino507.service -n 100 --no-pager
+sudo journalctl --vacuum-time=2d 
+
+Step 11
+
+mkdir -p ~/client-configs/files
+
+cp /usr/share/doc/openvpn/examples/sample-config-files/client.conf ~/client-configs/base.conf
+
+nano ~/client-configs/base.conf
+
+nano ~/client-configs/make_config.sh
+
+chmod 700 ~/client-configs/make_config.sh
+
+Step 12
+
+cd ~/client-configs
+./make_config.sh client1
+
+ls ~/client-configs/files
+
+
+
+

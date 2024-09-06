@@ -3,6 +3,15 @@
 sudo apt update
 sudo apt install -y build-essential p7zip-full
 
+------------- Install GNU C Compiler (gcc) version 12.3.0 -----------------
+Issue:
+GNU C Compiler (gcc) version 12.3.0, was not found. If you installed it in a non-default path you can specify the path below. Otherwise refer to your distribution's documentation for installation instructors and click Refresh to search again in default locations.
+
+Fix:
+$ sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa -y
+$ sudo apt update
+$ sudo apt install g++-12 gcc-12
+
 ------------- Install WMware Workstation Pro -----------------
 
 wget https://softwareupdate.vmware.com/cds/vmw-desktop/ws/17.5.2/23775571/linux/core/VMware-Workstation-17.5.2-23775571.x86_64.bundle.tar
