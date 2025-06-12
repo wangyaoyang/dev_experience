@@ -1,0 +1,84 @@
+
+Step 1
+
+# cd easy-rsa/
+# ./easyrsa gen-req johnwang nopass
+
+Keypair and certificate request completed. Your files are:
+req: /home/yaoyang/easy-rsa/pki/reqs/johnwang.req
+key: /home/yaoyang/easy-rsa/pki/private/johnwang.key
+
+Step 2
+
+# cp pki/reqs/johnwang.req /tmp/
+# cp pki/private/johnwang.key /tmp/
+
+Step 3
+
+# cd ~/easy-rsa/
+# ./easyrsa import-req /tmp/johnwang.req johnwang
+Using SSL: openssl OpenSSL 3.0.2 15 Mar 2022 (Library: OpenSSL 3.0.2 15 Mar 2022)
+
+Easy-RSA error:
+
+Unable to import the request as the destination file already exists.
+Please choose a different name for your imported request file.
+Existing file at: /home/yaoyang/easy-rsa/pki/reqs/johnwang.req
+
+Step 4
+
+# ./easyrsa sign-req client johnwang
+
+Using SSL: openssl OpenSSL 3.0.2 15 Mar 2022 (Library: OpenSSL 3.0.2 15 Mar 2022)
+
+
+You are about to sign the following certificate.
+Please check over the details shown below for accuracy. Note that this request
+has not been cryptographically verified. Please be sure it came from a trusted
+source or that you have verified the request checksum with the sender.
+
+Request subject, to be signed as a client certificate for 825 days:
+
+subject=
+    commonName                = johnwang
+
+
+Type the word 'yes' to continue, or any other input to abort.
+  Confirm request details: yes       
+Using configuration from /home/yaoyang/easy-rsa/pki/easy-rsa-570620.vcNWpS/tmp.YGJVVU
+Enter pass phrase for /home/yaoyang/easy-rsa/pki/private/ca.key:
+Check that the request matches the signature
+Signature ok
+The Subject's Distinguished Name is as follows
+commonName            :ASN.1 12:'johnwang'
+Certificate is to be certified until Sep 15 19:26:52 2027 GMT (825 days)
+
+Write out database with 1 new entries
+Data Base Updated
+
+Certificate created at: /home/yaoyang/easy-rsa/pki/issued/johnwang.crt
+
+
+Step 5
+
+# cp pki/issued/johnwang.crt ~/client-configs/keys/
+# cp /tmp/johnwang.key ~/client-configs/keys/
+
+Step 6
+
+# cd ~/client-configs
+# ./make_config.sh johnwang
+# ls ./files/johnwang.ovpn
+
+Step 7
+
+Edit johnwang.opvn and search for:
+
+remote Server507_IP 443
+
+replace the 'Server507_IP' with actual public IP address(it's dynamic, changes from time to time) of the server.
+
+We have a PowerShell tool called ovpn_update_ip.ps1 to modify the Server507_IP, e.g.
+
+PS D:\Personal\OpenVPN> ovpn_update_ip.ps1 johnwang.ovpn 192.168.1.1
+
